@@ -267,6 +267,9 @@ function clearRow(row) {
             }
         }
     }
+
+    lines++;
+    score += lines*5
 }
 function fallBlocks(fallenBlock) {
     if (fallenBlock[1] < 19) { // Checks if next block isn't the ground

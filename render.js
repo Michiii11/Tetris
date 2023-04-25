@@ -1,6 +1,7 @@
 // Create GameBoard
 let gameBoard = Array.from(Array(20), () => new Array(10)); // [y][x]
 let lines = 0;
+let score = 0;
 
 for (let i = 0; i < gameBoard.length; i++) {
     for (let j = 0; j < gameBoard[0].length; j++) {
@@ -29,10 +30,13 @@ function loadGameBoard(ask) {
                     buildBlock(x, y, blockColors(gameBoard[y][x])) // Draw all blocks on canvas
                 }
             } else {
-                buildBlock(x, y, "black")
+                buildBlock(x, y, "#1b1b1b")
             }
         }
     }
+
+    document.querySelector('.score p').innerHTML = score;
+    document.querySelector('.lines p').innerHTML = lines;
 }
 //Select Keys for Movement
 document.addEventListener('keydown', function (event) {
@@ -60,7 +64,7 @@ function buildBlock(x, y, color, c) {
 
     ctx.fillStyle = color; // Colorize block
     ctx.fillRect(x, y, 40, 40); // Draw block
-    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    ctx.strokeStyle = "rgb(0,0,0)";
     ctx.strokeRect(x, y, 40, 40);
     ctx.stroke();
 }
@@ -68,7 +72,7 @@ function buildRound(x, y, color){
     x *= 40;
     y *= 40;
 
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "hsl(0, 0%, 12%)";
     ctx.fillRect(x, y, 40, 40);
     ctx.strokeStyle = color;
     ctx.strokeRect(x, y, 40, 40);
@@ -122,18 +126,18 @@ function blockType(blockType) {
 function blockColors(blockType) {
     switch (blockType.charAt(0)) {
         case "O":
-            return "yellow"
+            return "#ffd91f"
         case "I":
-            return "turquoise"
+            return "#2cace1"
         case "S":
-            return "red"
+            return "#eb1846"
         case "Z":
-            return "green"
+            return "#00ab51"
         case "L":
-            return "orange"
+            return "#f4821f"
         case "J":
-            return "pink"
+            return "#003495"
         case "T":
-            return "purple"
+            return "#a7218a"
     }
 }
