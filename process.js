@@ -1,9 +1,13 @@
 let currentBlock = new Array(2); // [x][y]
+let nextBlocks = Array.from(Array(3), () => new Array(2)); // next three blocks
 let preDropBlock =  Array.from(Array(4), () => new Array(2));
 let rotateVariations; // Current Variations of Rotation
 let rotateIndex = 1; // Current Rotation Status
 
-currentBlock = randomBlock();
+for (let i = 0; i < 3; i++) {
+    nextBlocks[i] = randomBlockType();
+}
+nextBlock()
 let intervalF = setInterval(fallGuys, 1000);
 preDrop();
 
@@ -143,12 +147,17 @@ function rotation(thisBlock) {
     return rotate
 }
 
+/**
+ * calculates the position where the block will drop
+ */
 function preDrop() {
+    // set the pre drop block coordination's
     for(let i = 0; i < currentBlock[0].length; i++){
         preDropBlock[i][0] = currentBlock[0][i][0];
         preDropBlock[i][1] = currentBlock[0][i][1];
     }
 
+    // remove all pre drop blocks
     for (let i = 0; i < gameBoard.length; i++) {
         for(let j = 0; j < gameBoard[0].length; j++){
             if(gameBoard[i][j].charAt(1) === "R"){
@@ -157,34 +166,30 @@ function preDrop() {
         }
     }
 
+    // Drop the block
     let fix = false;
-    do{ // hilfe is des hässlich
-        if(preDropBlock[0][1] < 19 && preDropBlock[1][1] < 19 && preDropBlock[2][1] < 19 && preDropBlock[3][1] < 19){
-            if (gameBoard[preDropBlock[0][1] + 1][preDropBlock[0][0]] === "" || gameBoard[preDropBlock[0][1] + 1][preDropBlock[0][0]] === currentBlock[1]) {
-                if(gameBoard[preDropBlock[1][1] + 1][preDropBlock[1][0]] === "" || gameBoard[preDropBlock[1][1] + 1][preDropBlock[1][0]] === currentBlock[1]){
-                    if(gameBoard[preDropBlock[2][1] + 1][preDropBlock[2][0]] === "" || gameBoard[preDropBlock[2][1] + 1][preDropBlock[2][0]] === currentBlock[1]){
-                        if(gameBoard[preDropBlock[3][1] + 1][preDropBlock[3][0]] === "" || gameBoard[preDropBlock[3][1] + 1][preDropBlock[3][0]] === currentBlock[1]){
-                            preDropBlock[0][1]++;
-                            preDropBlock[1][1]++;
-                            preDropBlock[2][1]++;
-                            preDropBlock[3][1]++;
-                        } else{
-                            fix = true;
-                        }
-                    } else{
-                        fix = true;
-                    }
-                } else{
-                    fix = true;
+    do {
+        if (preDropBlock[0][1] < 19 && preDropBlock[1][1] < 19 && preDropBlock[2][1] < 19 && preDropBlock[3][1] < 19) {
+            let canMoveDown = true;
+            for (let i = 0; i < 4; i++) {
+                if (!(gameBoard[preDropBlock[i][1] + 1][preDropBlock[i][0]] === "" || gameBoard[preDropBlock[i][1] + 1][preDropBlock[i][0]] === currentBlock[1])) {
+                    canMoveDown = false;
+                    break;
                 }
-            } else{
+            }
+            if (canMoveDown) {
+                for (let i = 0; i < 4; i++) {
+                    preDropBlock[i][1]++;
+                }
+            } else {
                 fix = true;
             }
         } else {
             fix = true;
         }
-    } while(fix === false);
+    } while (fix === false);
 
+    // Set the block into the matrix
     for(let x = 0; x < preDropBlock.length; x++){
         for (let i = 0; i < gameBoard.length; i++) {
             for(let j = 0; j < gameBoard[0].length; j++){
@@ -198,13 +203,16 @@ function preDrop() {
     }
 }
 
+/**
+ * function to drop a block
+ */
 function dropBlock(){
     for(let i = 0; i < gameBoard.length; i++){
         for(let j = 0; j < gameBoard[0].length; j++){
-            if(gameBoard[i][j].charAt(1) == "M"){
+            if(gameBoard[i][j].charAt(1) === "M"){
                 gameBoard[i][j] = "";
             }
-            if(gameBoard[i][j].charAt(1) == "R"){
+            if(gameBoard[i][j].charAt(1) === "R"){
                 gameBoard[i][j] = currentBlock[1];
             }
         }
@@ -212,6 +220,9 @@ function dropBlock(){
     fixBlock();
 }
 
+/**
+ * fixes all blocks so that they're static
+ */
 function fixBlock() {
     for (let i = 0; i < gameBoard.length; i++) {
         for (let j = 0; j < gameBoard[0].length; j++) {
@@ -220,11 +231,15 @@ function fixBlock() {
             }
         }
     }
-    currentBlock = randomBlock(); // Get new moving block
+    nextBlock(true);
     preDrop();
     checkRows();
 }
 
+/**
+ * moves the block into a direction
+ * @param direction
+ */
 function moveBlock(direction) {
     if (currentBlock[0][0][0] + direction < 10 && currentBlock[0][1][0] + direction < 10 && currentBlock[0][2][0] + direction < 10 && currentBlock[0][3][0] + direction < 10) { // Checks if next block isn't the border
         if (currentBlock[0][0][0] + direction >= -1 && currentBlock[0][1][0] + direction >= -1 && currentBlock[0][2][0] + direction >= -1 && currentBlock[0][3][0] + direction >= -1) { // Checks if next block isn't the ground
@@ -234,7 +249,7 @@ function moveBlock(direction) {
                     currentBlock[0][i][0] += direction; // x-axis increases by moving factor
                 }
                 for (let i = 0; i < currentBlock[0].length; i++) {
-                    gameBoard[currentBlock[0][i][1]][currentBlock[0][i][0]] = currentBlock[1]; // Set updatet block
+                    gameBoard[currentBlock[0][i][1]][currentBlock[0][i][0]] = currentBlock[1]; // Set updated block
                 }
             }
         }
@@ -242,46 +257,60 @@ function moveBlock(direction) {
     loadGameBoard(true);
 }
 
+/**
+ * checks if a move ends with a collision or not
+ * @param x block movement into x
+ * @param y block movement into y
+ * @returns {boolean} if the move is possible or not
+ */
 function checkCollision(x, y) {
     let count = 0;
     for (let i = 0; i < gameBoard[0].length; i++) {
-        if (gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x] != "" && gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x] != currentBlock[1] && gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x].charAt(1) != "R") { // Check if next move/block isn't selected already
-            if (x == 0) {
+        if (gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x] !== "" && gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x] !== currentBlock[1] && gameBoard[currentBlock[0][i][1] + y][currentBlock[0][i][0] + x].charAt(1) !== "R") { // Check if next move/block isn't selected already
+            if (x === 0) {
                 fixBlock(); // If the block sits on the ground all blocks get fixed
             }
             return false;
         } else {
             count++;
         }
-
-        if (count == 4) {
+        if (count === 4) {
             return true;
         }
     }
 }
 
+/**
+ * checks if a row is finished
+ * if it's full it gets cleared
+ */
 function checkRows() {
     for (let i = 0; i < gameBoard.length; i++) {
         let count = 0;
         for (let j = 0; j < gameBoard[0].length; j++) {
-            if (gameBoard[i][j] != "") {
+            if (gameBoard[i][j] !== "") {
                 count++;
             }
         }
-        if (count == gameBoard[0].length) {
+        if (count === gameBoard[0].length) { // clear when the line is full
             lines++;
             clearRow(i)
         }
     }
 }
+
+/**
+ * clears a row
+ * @param row
+ */
 function clearRow(row) {
     for (let j = 0; j < gameBoard[0].length; j++) {
         gameBoard[row][j] = "";
     }
 
-    for (let i = gameBoard.length - 1; i >= 0; i--) {
+    for (let i = gameBoard.length - 1; i >= 0; i--) { // from bottom to top
         for (let j = 0; j < gameBoard[0].length; j++) {
-            if (gameBoard[i][j] != "") {
+            if (gameBoard[i][j] !== "") {
                 let block = [j, i, gameBoard[i][j]]
                 fallBlocks(block)
             }
@@ -291,10 +320,15 @@ function clearRow(row) {
     lines++;
     score += lines*5
 }
+
+/**
+ * this function makes a block fall again
+ * @param fallenBlock
+ */
 function fallBlocks(fallenBlock) {
     if (fallenBlock[1] < 19) { // Checks if next block isn't the ground
-        if (gameBoard[fallenBlock[1] + 1][fallenBlock[0]] == "") { // Checks next block
-            gameBoard[fallenBlock[1] + 1][fallenBlock[0]] = gameBoard[fallenBlock[1]][fallenBlock[0]]; // Set updatet block
+        if (gameBoard[fallenBlock[1] + 1][fallenBlock[0]] === "") { // Checks next block
+            gameBoard[fallenBlock[1] + 1][fallenBlock[0]] = gameBoard[fallenBlock[1]][fallenBlock[0]]; // Set updated block
             gameBoard[fallenBlock[1]][fallenBlock[0]] = ""; // Clear current
         }
     }

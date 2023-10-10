@@ -13,6 +13,12 @@ main{
 
 canvas{
     position: absolute;
+    top: 5vh;
+}
+
+#nextCanvas{
+    left: 65vw;
+    top: 10vh;
 }
 
 aside{
